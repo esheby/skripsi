@@ -5,6 +5,7 @@ import sys
 import pandas as pd
 import numpy as np
 import random
+import math
 from MonteCarlo import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
@@ -53,57 +54,105 @@ class MonteCarlo(QDialog):
     def prosesButtonClicked(self):
         pasarPilihan = self.ui.comboPasar.currentText()
         bahanPilihan = self.ui.comboBahan.currentText()
-        self.df = pd.read_csv(str(fileHandle), index_col=[1])
-        self.df2 = self.df.loc[[pasarPilihan],[bahanPilihan]].reset_index().copy()
-        self.total = self.df2[bahanPilihan].sum()
-        print(self.total)
-        self.df2['Prob'] = self.df2[bahanPilihan] / self.total
-        self.df2['Prob Kumulatif'] = self.df2['Prob'].cumsum()
-        print(self.df2)
-        self.df2['Interval Akhir'] = self.df2['Prob Kumulatif']
-
-        self.df3 = self.df2['Interval Akhir']
-        self.interval = self.df3.iloc[:].values
-        self.interval = (self.interval * 100).round()
-
-        self.angkaRandom = []
-        for self.i in range(int(self.ui.comboHari.currentText())):
-            self.angkaRandom.append(random.randrange(0,self.df3.count()))
-        self.angkaRandom
-
-        self.c = 0
-        self.listPrediksi = []
-        self.listPenanda = []
-        for self.y in range(len(self.angkaRandom)):
-            for self.x in range(self.df3.count()):
-                if self.x == 0:
-                    self.iv = (pd.Interval(left=0, right=(self.interval[self.x]), closed ='both'))
-                    self.x+=1
-                    if (self.angkaRandom[self.y] in self.iv) == True:
-                        self.listPenanda.append(self.x)
-                        break
-                    continue
-                elif (self.interval[self.x]-self.interval[self.x-1]) == 1:
-                    self.iv = (pd.Interval(left=(self.interval[self.x]), right=(self.interval[self.x]), closed ='both'))
-                    self.x+=1
-                    if (self.angkaRandom[self.y] in self.iv) == True:
-                        self.listPenanda.append(self.x)
-                        break
-                    continue
-                else:
-                    self.iv = (pd.Interval(left=(self.interval[self.x-1]), right=(self.interval[self.x]), closed ='both'))
-                    self.x+=1
-                    if (self.angkaRandom[self.y] in self.iv) == True:
-                        self.listPenanda.append(self.x)
-                        break
         
-        self.df4 = self.df.loc[[pasarPilihan],[bahanPilihan]].reset_index().copy()
-        harga_beras = self.df4.iloc[:,1].values
+        #df adalah baca csv
+        df = pd.read_csv(str(fileHandle),index_col=[1])
+        #df2 adalah dataframe dimana yang dipilih adalah [nama pasar] dan [nama barang]
+        df2 = df.loc[[pasarPilihan],[bahanPilihan]].reset_index().copy()
+        #listHarga adalah dimana data [nama barang] diurutkan dari angka paling kecil ke paling besar
+        listHarga = df2[bahanPilihan].values
+        
+        #Buat variabel tabel interval
+        minPrice=listHarga.min()
+        maxPrice=listHarga.max()
+        jumBaris=len(listHarga)
+        selisih = maxPrice - minPrice
+        jumBarisInterval = round(math.sqrt(jumBaris))
+        selisihInterval = round(selisih/jumBarisInterval)
+        selisihInterval
 
-        for self.penanda in self.listPenanda:
-            self.listPrediksi.append(harga_beras[self.penanda])
-            
-        QMessageBox.information(self, 'Harga', repr(self.listPrediksi))
+
+        #a = interval bagian bawah
+        #b = interval bagian atas
+        a = []
+        b = []
+        for x in range(int(jumBarisInterval)):
+            if x == 0:
+                a.append(minPrice)
+                b.append(minPrice + selisihInterval)
+            elif x == jumBarisInterval-1:
+                a.append(b[-1]+1)
+                b.append(maxPrice)
+            else:
+                a.append(b[-1]+1)
+                b.append(a[-1] + selisihInterval)
+        #diubah menjadi array
+        interA = np.array(a)
+        interB = np.array(b)
+        print(interA)
+        print(interB)
+
+        freqList = []
+        for x in range(jumBarisInterval):
+            counter = 0
+            iv = pd.Interval(left=interA[x], right=interB[x], closed='both')
+            for prices in listHarga:
+                if (prices in iv) == True:
+                    counter += 1
+            freqList.append(counter)
+        
+        #dibuat dataframe bernama dfprob
+        dfprob = pd.DataFrame({'bawah':interA, 'atas':interB, 'frekuensi':freqList})
+        dfprob['prob'] = dfprob['frekuensi']/jumBaris
+        dfprob['prob kumulatif'] = dfprob['prob'].cumsum()
+
+        dfprob = dfprob[dfprob.frekuensi != 0]
+        hari = 5
+        jumRN = 50
+        dfRN = pd.DataFrame()
+
+        for x in range(jumRN):
+            tesRN = []
+            for y in range(hari):
+                tesRN.append(random.uniform(0,1))
+                y+=1
+            dfRN['RN'+str(x)] = tesRN
+            x+=1
+
+        probInter = np.round((dfprob['prob kumulatif']).values,3)
+        #a = interval bagian bawah
+        #b = interval bagian atas
+        a = []
+        b = []
+        for x in range(len(probInter)):
+            if x == 0:
+                a.append(0)
+                b.append(probInter[x])
+                x+=1
+            else:
+                a.append(b[-1]+0.001)
+                b.append(probInter[x])
+                x+=1
+
+        bawprob = np.array(a)
+        atprob = np.array(b)
+
+        rerata = []
+        rerata = (((dfprob['atas'] - dfprob['bawah'])/2)+dfprob['bawah']).values
+
+        newdfRN = pd.DataFrame()
+        for x in range(jumRN):
+            RNavg = []
+            for y in dfRN['RN'+str(x)]:
+                for z in range(len(probInter)):
+                    iv = pd.Interval(left=bawprob[z], right=atprob[z], closed='both')
+                    if (round(y) in iv) == True:
+                        RNavg.append(rerata[z])
+            newdfRN['RN'+str(x)] = RNavg
+        newdfRN['mean'] = newdfRN.mean(axis=1)
+        prediksi = newdfRN['mean'].values
+
+        QMessageBox.information(self, 'Prediksi', repr(prediksi))
 
 if __name__ == "__main__":
     a = QApplication(sys.argv)
