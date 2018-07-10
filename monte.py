@@ -54,6 +54,7 @@ class MonteCarlo(QDialog):
     def prosesButtonClicked(self):
         pasarPilihan = self.ui.comboPasar.currentText()
         bahanPilihan = self.ui.comboBahan.currentText()
+        hariPilihan = int(self.ui.comboHari.currentText())
         
         #df adalah baca csv
         df = pd.read_csv(str(fileHandle),index_col=[1])
@@ -107,13 +108,12 @@ class MonteCarlo(QDialog):
         dfprob['prob kumulatif'] = dfprob['prob'].cumsum()
 
         dfprob = dfprob[dfprob.frekuensi != 0]
-        hari = 5
         jumRN = 50
         dfRN = pd.DataFrame()
 
         for x in range(jumRN):
             tesRN = []
-            for y in range(hari):
+            for y in range(hariPilihan):
                 tesRN.append(random.uniform(0,1))
                 y+=1
             dfRN['RN'+str(x)] = tesRN
