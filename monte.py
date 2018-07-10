@@ -146,7 +146,7 @@ class MonteCarlo(QDialog):
             for y in dfRN['RN'+str(x)]:
                 for z in range(len(probInter)):
                     iv = pd.Interval(left=bawprob[z], right=atprob[z], closed='both')
-                    if (round(y) in iv) == True:
+                    if (round(y,3) in iv) == True:
                         RNavg.append(rerata[z])
             newdfRN['RN'+str(x)] = RNavg
         newdfRN['mean'] = newdfRN.mean(axis=1)
