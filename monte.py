@@ -150,7 +150,7 @@ class MonteCarlo(QDialog):
                         RNavg.append(rerata[z])
             newdfRN['RN'+str(x)] = RNavg
         newdfRN['mean'] = newdfRN.mean(axis=1)
-        prediksi = newdfRN['mean'].values
+        prediksi = (newdfRN['mean'].values).tolist()
 
         QMessageBox.information(self, 'Prediksi', repr(prediksi))
 
