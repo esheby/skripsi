@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import random
 import math
+import datetime
 from MonteCarlo import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
@@ -59,10 +60,12 @@ class MonteCarlo(QDialog):
         #df adalah baca csv
         df = pd.read_csv(str(fileHandle),index_col=[1])
         #df2 adalah dataframe dimana yang dipilih adalah [nama pasar] dan [nama barang]
-        df2 = df.loc[[pasarPilihan],[bahanPilihan]].reset_index().copy()
+        df2 = df.loc[[pasarPilihan],[bahanPilihan, 'Tanggal']].reset_index().copy()
         #listHarga adalah dimana data [nama barang] diurutkan dari angka paling kecil ke paling besar
         listHarga = df2[bahanPilihan].values
-        
+        tanggal = (df2['Tanggal'].values).tolist()
+        tanggal = tanggal[-1]
+        tanggal = datetime.datetime.strptime(tanggal, '%Y/%m/%d')
         #Buat variabel tabel interval
         minPrice=listHarga.min()
         maxPrice=listHarga.max()
@@ -152,7 +155,21 @@ class MonteCarlo(QDialog):
         newdfRN['mean'] = newdfRN.mean(axis=1)
         prediksi = (newdfRN['mean'].values).tolist()
 
-        QMessageBox.information(self, 'Prediksi', repr(prediksi))
+        tanggalan = []
+
+        for i in range(hariPilihan):
+            tanggal += datetime.timedelta(days=1)
+            tanggalan.append(tanggal.strftime("%Y/%m/%d"))
+        
+        #memasukkan ke tabel
+        self.ui.tabel.setColumnCount(hariPilihan)
+        self.ui.tabel.setRowCount(1)
+        self.ui.tabel.setHorizontalHeaderLabels(tanggalan)
+
+        for i in range(len(prediksi)):
+            #self.ui.tabel.setItem(0, i, QTableWidgetItem(str(tanggalan[i])))
+            self.ui.tabel.setItem(0, i, QTableWidgetItem(str(prediksi[i])))
+
 
 if __name__ == "__main__":
     a = QApplication(sys.argv)

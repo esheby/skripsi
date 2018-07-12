@@ -66,8 +66,6 @@ class Ui_Dialog(object):
         self.tabel = QtWidgets.QTableWidget(Dialog)
         self.tabel.setGeometry(QtCore.QRect(60, 290, 451, 211))
         self.tabel.setObjectName("tabel")
-        self.tabel.setColumnCount(0)
-        self.tabel.setRowCount(0)
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
