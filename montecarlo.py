@@ -1,7 +1,7 @@
 import sys
 
 from Menu import *
-from MonteCarlo import *
+from FormPrediksiSatu import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 
@@ -13,7 +13,11 @@ class MenuForm(QDialog):
         self.ui.button1Pasar.clicked.connect(self.button1PasarClicked)
 
     def button1PasarClicked(self):
-        QMessageBox.information(self, 'tes','nyoba')
+        self.form1 = MenuForm()
+        self.form2 = PrediksiSatuPasar()
+        self.form2.show()
+        self.form1.hide()
+
 
 if __name__ == "__main__":
     a = QApplication(sys.argv)

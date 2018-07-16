@@ -27,7 +27,7 @@ class Ui_Menu(object):
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        Dialog.setWindowTitle(_translate("Dialog", "Prediksi Monte Carlo"))
         self.button1Pasar.setText(_translate("Dialog", "Prediksi 1 Pasar"))
         self.buttonBanyakPasar.setText(_translate("Dialog", "Prediksi Banyak Pasar"))
 
