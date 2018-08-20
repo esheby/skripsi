@@ -1,17 +1,13 @@
-#form pertama: browse.py
-
-import sys
-
 import pandas as pd
 import numpy as np
 import random
 import math
 import datetime
-from MonteCarlo import *
+from PrediksiSatu import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 
-class MonteCarlo(QDialog):
+class PrediksiSatuPasar(QDialog):
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
         self.ui = Ui_Dialog()
@@ -33,9 +29,6 @@ class MonteCarlo(QDialog):
 
     def importButtonClicked(self):
         print(fileHandle)
-        #with open(fileHandle) as f:
-           # content = f.read().splitlines()
-           # print(content)
         self.changeEnable()
         self.df = pd.read_csv(str(fileHandle))
         pasarList = self.df.Pasar.unique().tolist()
@@ -169,10 +162,3 @@ class MonteCarlo(QDialog):
         for i in range(len(prediksi)):
             #self.ui.tabel.setItem(0, i, QTableWidgetItem(str(tanggalan[i])))
             self.ui.tabel.setItem(0, i, QTableWidgetItem(str(prediksi[i])))
-
-
-if __name__ == "__main__":
-    a = QApplication(sys.argv)
-    form = MonteCarlo()
-    form.show()
-    a.exec_()

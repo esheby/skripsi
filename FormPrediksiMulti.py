@@ -1,20 +1,16 @@
-#form pertama: browse.py
-
-import sys
-
 import pandas as pd
 import numpy as np
 import random
 import math
 import datetime
-from MonteCarlo import *
+from PrediksiMulti import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 
-class MonteCarlo(QDialog):
+class PrediksiMultiPasar(QDialog):
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
-        self.ui = Ui_Dialog()
+        self.ui = MultiUI()
         self.ui.setupUi(self)
         self.ui.browseButton.clicked.connect(self.browseButtonClicked)
         self.ui.importButton.clicked.connect(self.importButtonClicked)
@@ -22,62 +18,38 @@ class MonteCarlo(QDialog):
 
     def browseButtonClicked(self):
         import os
-        filePath = QFileDialog.getOpenFileName(self, 
-                                                       'Pilih File',
-                                                       os.curdir,
-                                                      '*.csv')
-        global fileHandle 
+        filePath = QFileDialog.getOpenFileName(self, 'Pilih File', os.curdir,'*.csv')
+        global fileHandle
         fileHandle = filePath[0]
         fileHandle.replace("\t","\\t")
         self.ui.browsePath.insert(filePath[0])
-
+    
     def importButtonClicked(self):
         print(fileHandle)
-        #with open(fileHandle) as f:
-           # content = f.read().splitlines()
-           # print(content)
         self.changeEnable()
         self.df = pd.read_csv(str(fileHandle))
-        pasarList = self.df.Pasar.unique().tolist()
         bahanList = self.df.columns[2:].tolist()
-        self.ui.comboPasar.addItems(pasarList)
         self.ui.comboBahan.addItems(bahanList)
 
     def changeEnable(self):
         self.ui.browseButton.setEnabled(False)
         self.ui.browsePath.setEnabled(False)
         self.ui.importButton.setEnabled(False)
-        self.ui.comboPasar.setEnabled(True)
         self.ui.comboBahan.setEnabled(True)
         self.ui.comboHari.setEnabled(True)
         self.ui.prosesButton.setEnabled(True)
 
-    def prosesButtonClicked(self):
-        pasarPilihan = self.ui.comboPasar.currentText()
-        bahanPilihan = self.ui.comboBahan.currentText()
-        hariPilihan = int(self.ui.comboHari.currentText())
-        
-        #df adalah baca csv
-        df = pd.read_csv(str(fileHandle),index_col=[1])
-        #df2 adalah dataframe dimana yang dipilih adalah [nama pasar] dan [nama barang]
-        df2 = df.loc[[pasarPilihan],[bahanPilihan, 'Tanggal']].reset_index().copy()
-        #listHarga adalah dimana data [nama barang] diurutkan dari angka paling kecil ke paling besar
+    def perhitungan(self, pasars, df, bahanPilihan, hariPilihan, index):
+        df2 = df.loc[[pasars[index]],[bahanPilihan]].reset_index().copy()
         listHarga = df2[bahanPilihan].values
-        tanggal = (df2['Tanggal'].values).tolist()
-        tanggal = tanggal[-1]
-        tanggal = datetime.datetime.strptime(tanggal, '%Y/%m/%d')
-        #Buat variabel tabel interval
-        minPrice=listHarga.min()
-        maxPrice=listHarga.max()
-        jumBaris=len(listHarga)
+        minPrice = listHarga.min()
+        maxPrice = listHarga.max()
+        jumBaris = len(listHarga)
         selisih = maxPrice - minPrice
         jumBarisInterval = round(math.sqrt(jumBaris))
         selisihInterval = round(selisih/jumBarisInterval)
         selisihInterval
 
-
-        #a = interval bagian bawah
-        #b = interval bagian atas
         a = []
         b = []
         for x in range(int(jumBarisInterval)):
@@ -104,8 +76,7 @@ class MonteCarlo(QDialog):
                 if (prices in iv) == True:
                     counter += 1
             freqList.append(counter)
-        
-        #dibuat dataframe bernama dfprob
+
         dfprob = pd.DataFrame({'bawah':interA, 'atas':interB, 'frekuensi':freqList})
         dfprob['prob'] = dfprob['frekuensi']/jumBaris
         dfprob['prob kumulatif'] = dfprob['prob'].cumsum()
@@ -155,24 +126,40 @@ class MonteCarlo(QDialog):
         newdfRN['mean'] = newdfRN.mean(axis=1)
         prediksi = (newdfRN['mean'].values).tolist()
 
-        tanggalan = []
+        for i in range(len(prediksi)):
+            self.ui.tabel.setItem(i, index, QTableWidgetItem(str(prediksi[i])))
+    
+    def prosesButtonClicked(self):
+        bahanPilihan = self.ui.comboBahan.currentText()
+        hariPilihan = int(self.ui.comboHari.currentText())
 
+        df = pd.read_csv(str(fileHandle), index_col=[1])
+        pasars = df.index.unique().values.tolist()
+        tanggal = df['Tanggal'].unique().tolist()
+        tanggal = tanggal[-1]
+        tanggal = datetime.datetime.strptime(tanggal, '%Y/%m/%d')
+
+        tanggalan = []
         for i in range(hariPilihan):
             tanggal += datetime.timedelta(days=1)
             tanggalan.append(tanggal.strftime("%Y/%m/%d"))
+
+        #konfigurasi tabel
+        self.ui.tabel.setColumnCount(len(pasars))
+        self.ui.tabel.setRowCount(hariPilihan)
+        self.ui.tabel.setVerticalHeaderLabels(tanggalan)
+        self.ui.tabel.setHorizontalHeaderLabels(pasars)
+
+        for index in range(len(pasars)):
+            self.perhitungan(pasars, df, bahanPilihan, hariPilihan, index)
+
         
-        #memasukkan ke tabel
-        self.ui.tabel.setColumnCount(hariPilihan)
-        self.ui.tabel.setRowCount(1)
-        self.ui.tabel.setHorizontalHeaderLabels(tanggalan)
-
-        for i in range(len(prediksi)):
-            #self.ui.tabel.setItem(0, i, QTableWidgetItem(str(tanggalan[i])))
-            self.ui.tabel.setItem(0, i, QTableWidgetItem(str(prediksi[i])))
+        
+        
+        
+        
+        
+        
 
 
-if __name__ == "__main__":
-    a = QApplication(sys.argv)
-    form = MonteCarlo()
-    form.show()
-    a.exec_()
+    
