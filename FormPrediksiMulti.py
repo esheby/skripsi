@@ -65,8 +65,6 @@ class PrediksiMultiPasar(QDialog):
         #diubah menjadi array
         interA = np.array(a)
         interB = np.array(b)
-        print(interA)
-        print(interB)
 
         freqList = []
         for x in range(jumBarisInterval):
@@ -127,7 +125,7 @@ class PrediksiMultiPasar(QDialog):
         prediksi = (newdfRN['mean'].values).tolist()
 
         for i in range(len(prediksi)):
-            self.ui.tabel.setItem(i, index, QTableWidgetItem(str(prediksi[i])))
+            self.ui.tabel.setItem(i, index, QTableWidgetItem(str(int(round(prediksi[i],-2)))))
     
     def prosesButtonClicked(self):
         bahanPilihan = self.ui.comboBahan.currentText()

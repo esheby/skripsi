@@ -155,10 +155,11 @@ class PrediksiSatuPasar(QDialog):
             tanggalan.append(tanggal.strftime("%Y/%m/%d"))
         
         #memasukkan ke tabel
-        self.ui.tabel.setColumnCount(hariPilihan)
-        self.ui.tabel.setRowCount(1)
-        self.ui.tabel.setHorizontalHeaderLabels(tanggalan)
+        self.ui.tabel.setRowCount(hariPilihan)
+        self.ui.tabel.setColumnCount(1)
+        self.ui.tabel.setVerticalHeaderLabels(tanggalan)
 
         for i in range(len(prediksi)):
             #self.ui.tabel.setItem(0, i, QTableWidgetItem(str(tanggalan[i])))
-            self.ui.tabel.setItem(0, i, QTableWidgetItem(str(prediksi[i])))
+            #self.ui.tabel.setItem(0, i, QTableWidgetItem(str(prediksi[i])))
+            self.ui.tabel.setItem(i, 0, QTableWidgetItem(str(int(round(prediksi[i],-2)))))
