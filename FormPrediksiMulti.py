@@ -135,12 +135,12 @@ class PrediksiMultiPasar(QDialog):
         pasars = df.index.unique().values.tolist()
         tanggal = df['Tanggal'].unique().tolist()
         tanggal = tanggal[-1]
-        tanggal = datetime.datetime.strptime(tanggal, '%Y/%m/%d')
+        tanggal = datetime.datetime.strptime(tanggal, '%d/%m/%Y')
 
         tanggalan = []
         for i in range(hariPilihan):
             tanggal += datetime.timedelta(days=1)
-            tanggalan.append(tanggal.strftime("%Y/%m/%d"))
+            tanggalan.append(tanggal.strftime("%d/%m/%Y"))
 
         #konfigurasi tabel
         self.ui.tabel.setColumnCount(len(pasars))

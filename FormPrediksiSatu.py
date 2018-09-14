@@ -58,7 +58,7 @@ class PrediksiSatuPasar(QDialog):
         listHarga = df2[bahanPilihan].values
         tanggal = (df2['Tanggal'].values).tolist()
         tanggal = tanggal[-1]
-        tanggal = datetime.datetime.strptime(tanggal, '%Y/%m/%d')
+        tanggal = datetime.datetime.strptime(tanggal, '%d/%m/%Y')
         #Buat variabel tabel interval
         minPrice=listHarga.min()
         maxPrice=listHarga.max()
@@ -152,7 +152,7 @@ class PrediksiSatuPasar(QDialog):
 
         for i in range(hariPilihan):
             tanggal += datetime.timedelta(days=1)
-            tanggalan.append(tanggal.strftime("%Y/%m/%d"))
+            tanggalan.append(tanggal.strftime("%d/%m/%Y"))
         
         #memasukkan ke tabel
         self.ui.tabel.setRowCount(hariPilihan)
